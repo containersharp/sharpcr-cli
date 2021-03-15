@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace SharpCR.CLI
+﻿namespace SharpCR.CLI
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            new Docker().Run(args);
         }
     }
 }

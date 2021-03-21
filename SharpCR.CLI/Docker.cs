@@ -7,47 +7,69 @@ namespace SharpCR.CLI
 {
     class Docker
     {
-        const string SHARPCR_REGISTRY = "jijiechen-docker.pkg.coding.net";
-
-        public void Run(string[] args)
+        public void Fire(string[] args)
         {
             if (args == null || args.Length < 1) return;
 
-            var command = args[0];
+            var command = args[0].ToLower();
 
-            if (command.Equals("pull", StringComparison.OrdinalIgnoreCase))
+            switch (command)
             {
-                Pull(args.Skip(1).ToArray());
-            }
-            else
-            {
-                RunCommand(args);
+                case "pull":
+                    Pull(args);
+                    break;
+                case "run":
+                    Run(args);
+                    break;
+                default:
+                    RunCommand(args);
+                    break;
             }
         }
 
-        void Pull(string[] args)
+        void Run(string[] args)
         {
-            var image = args[0];
-            var sharpImage = $"{SHARPCR_REGISTRY}/{image}";
+            var image = ArgsHelper.ExtractImageFromArgs(
+                args,
+                ArgsHelper.RUN_NO_VALUE_OPTIONS);
 
-            if (CheckImageExisted(image)) return;
-
-            var process = RunCommand(new[] {"pull", sharpImage}.Concat(args.Skip(1)).ToArray());
-
-            if (process.ExitCode == 0)
+            if (image == null)
             {
-                RunCommand(new[] {"tag", sharpImage, image});
-                RunCommand(new[] {"rmi", sharpImage});
+                Console.WriteLine(
+                    "Image not found from args: " + string.Join(" ", args));
+                return;
             }
+
+            if (!IsImageExisted(image))
+            {
+                Pull(new[] {"pull", image});
+            }
+
+            RunCommand(args);
         }
 
-        bool CheckImageExisted(string image)
+        bool IsImageExisted(string image)
         {
             var process = RunCommand(new[] {"images", "-q", image}, true);
 
             var output = process.StandardOutput.ReadToEnd();
 
             return !output.Equals("");
+        }
+
+        void Pull(string[] args)
+        {
+            var (source, target) = ArgsHelper.ParseImage(args.Last());
+            var command = new[] {"pull"}
+                .Concat(args.Skip(1).Take(args.Length - 2))
+                .Concat(new[] {source}).ToArray();
+            var process = RunCommand(command);
+
+            if (process.ExitCode == 0)
+            {
+                RunCommand(new[] {"tag", source, target});
+                RunCommand(new[] {"rmi", source});
+            }
         }
 
         Process RunCommand(string[] args, bool redirectOutput = false)
@@ -74,7 +96,9 @@ namespace SharpCR.CLI
                 return Tuple.Create("docker.exe", string.Join(" ", args));
             }
 
-            return Tuple.Create("command", string.Join(" ", new[] {"docker"}.Concat(args)));
+            return Tuple.Create(
+                "command",
+                string.Join(" ", new[] {"docker"}.Concat(args)));
         }
     }
 }

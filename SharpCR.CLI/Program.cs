@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            new Docker().Run(args);
+            new Docker().Fire(args);
         }
     }
 }

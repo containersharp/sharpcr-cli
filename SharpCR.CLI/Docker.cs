@@ -59,6 +59,8 @@ namespace SharpCR.CLI
 
         void Pull(string[] args)
         {
+            Login();
+
             var (source, target) = ArgsHelper.ParseImage(args.Last());
             var command = new[] {"pull"}
                 .Concat(args.Skip(1).Take(args.Length - 2))
@@ -70,6 +72,11 @@ namespace SharpCR.CLI
                 RunCommand(new[] {"tag", source, target});
                 RunCommand(new[] {"rmi", source});
             }
+        }
+
+        void Login()
+        {
+            RunCommand(new[] {"login", ArgsHelper.SHARPCR_REGISTRY});
         }
 
         Process RunCommand(string[] args, bool redirectOutput = false)

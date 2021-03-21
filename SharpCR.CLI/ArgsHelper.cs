@@ -5,7 +5,7 @@ namespace SharpCR.CLI
 {
     class ArgsHelper
     {
-        const string SHARPCR_REGISTRY = "jijiechen-docker.pkg.coding.net";
+        public const string SHARPCR_REGISTRY = "jijiechen-docker.pkg.coding.net";
 
         public static readonly string[] RUN_NO_VALUE_OPTIONS =
         {
